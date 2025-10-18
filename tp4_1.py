@@ -91,3 +91,6 @@ P_2 = [probs2[i]*probs2[j] for i in range(len(probs2)) for j in range(len(probs2
 print("="*50)
 print("Ejemplo 2 - Código 2 con N=2:")
 print(f"Cumple teorema: {teorema_shannon(P_2, C2, 1)}\n")
+print("rendimiento y redundancia:")
+rendimiento, redundancia = utils.rendimiento_redundancia(P_2, C2)
+print(f"Rendimiento: {rendimiento:.4f}, Redundancia: {redundancia:.4f}\n")
