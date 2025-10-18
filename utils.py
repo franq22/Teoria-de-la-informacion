@@ -296,10 +296,6 @@ def sumatoria_kraft(lista):
 def teorema_shannon(probabilidades, codigo, N):
     H = entropia(probabilidades, r=len(get_alfabeto_codigos(codigo)))/N
     L = longitud_media(probabilidades, codigo)
-    print(f"Entropía H: {H:.4f} (base {len(get_alfabeto_codigos(codigo))})")
-    print(f"Longitud media L: {L_n:.4f}")
-    print(f"L/N: {L_n/N:.4f}")
-    print(f"H ≤ L/N < H + 1/N: {H:.4f} ≤ {L_n/N:.4f} < {H + 1/N:.4f}")
     return H <= L/N < H + 1/N
 
 
