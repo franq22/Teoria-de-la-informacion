@@ -1,5 +1,6 @@
 import math
 import random
+import heapq
 
 # Función recursiva para generar las combinaciones
 def generar_combinaciones(alfabeto: list, N: int) -> list:
@@ -33,7 +34,7 @@ def generarConExtension(alfabeto: list, probabilidades: list[float], N: int):
         nuevas_probabilidades.append(probabilidad)
 
     # Convertir las combinaciones de listas de letras a cadenas
-    nuevas_letras = [''.join(str(combinacion)) for combinacion in combinaciones]
+    nuevas_letras = [''.join(combinacion) for combinacion in combinaciones]
 
     return nuevas_letras, nuevas_probabilidades
 
@@ -273,6 +274,11 @@ def clasificar_codigo(codigo: list) -> str:
 def get_longitudes( codigo):
     return [len(c) for c in codigo]
 
+def longitud_media(probabilidades, codigo):
+    long = get_longitudes(codigo)
+    L = sum([p * l for p, l in zip(probabilidades, long)])
+    return L
+
 def get_alfabeto_codigos(C):
     x = ""
     for codigo in C:
@@ -286,3 +292,131 @@ def sumatoria_kraft(lista):
     l = get_longitudes(lista)
     suma = sum([1/(r**i) for i in l])
     return suma 
+
+def teorema_shannon(probabilidades, codigo, N):
+    H = entropia(probabilidades, r=len(get_alfabeto_codigos(codigo)))/N
+    L = longitud_media(probabilidades, codigo)
+    print(f"Entropía H: {H:.4f} (base {len(get_alfabeto_codigos(codigo))})")
+    print(f"Longitud media L: {L_n:.4f}")
+    print(f"L/N: {L_n/N:.4f}")
+    print(f"H ≤ L/N < H + 1/N: {H:.4f} ≤ {L_n/N:.4f} < {H + 1/N:.4f}")
+    return H <= L/N < H + 1/N
+
+
+def huffman(probabilidades):
+    n = len(probabilidades)
+    
+    items = [[probabilidades[i], [i]] for i in range(n)]
+    heapq.heapify(items)
+    
+    while len(items) > 1:
+        item1 = heapq.heappop(items)  # menor
+        item2 = heapq.heappop(items)  # segundo menor
+        
+        prob_combinada = item1[0] + item2[0]
+        indices_combinados = item1[1] + item2[1]
+        
+        heapq.heappush(items, [prob_combinada, indices_combinados])
+    
+
+    codigos = [''] * n
+    
+    # Reiniciar la lista de items para asignar códigos
+    items = [[probabilidades[i], [i]] for i in range(n)]
+    heapq.heapify(items)
+    
+    # Diccionario para almacenar códigos parciales
+    codigo_dict = {i: '' for i in range(n)}
+    
+    while len(items) > 1:
+        item1 = heapq.heappop(items)
+        item2 = heapq.heappop(items)
+        
+        # Asignar '1' al primero (menor) y '0' al segundo
+        for idx in item1[1]:
+            codigo_dict[idx] = '0' + codigo_dict[idx]
+        for idx in item2[1]:
+            codigo_dict[idx] = '1' + codigo_dict[idx]
+        
+        prob_combinada = item1[0] + item2[0]
+        indices_combinados = item1[1] + item2[1]
+        heapq.heappush(items, [prob_combinada, indices_combinados])
+    
+    return [codigo_dict[i] for i in range(n)]
+    
+
+def shannon_fano(probabilidades):
+    """
+    Implementa el algoritmo de Shannon-Fano para generar un código.
+    
+    Parámetros:
+        - probabilidades (list): Lista de probabilidades
+    
+    Retorna:
+        - list: Lista de códigos en el mismo orden que las probabilidades
+    
+    Ejemplo:
+        >>> shannon_fano([0.20, 0.27, 0.40, 0.13])
+        ['001', '01', '1', '000']
+    """
+    n = len(probabilidades)
+    
+    # Crear lista de items: [probabilidad, índice]
+    items = [[probabilidades[i], i] for i in range(n)]
+    
+    # Ordenar por probabilidad descendente
+    items.sort(reverse=True, key=lambda x: x[0])
+    
+    # Diccionario para almacenar códigos
+    codigo_dict = {i: '' for i in range(n)}
+    
+    # Función recursiva para dividir y asignar códigos
+    def dividir(items_grupo):
+        if len(items_grupo) <= 1:
+            return
+        
+        # Calcular el punto de división que hace las sumas más equilibradas
+        total = sum(item[0] for item in items_grupo)
+        suma_acumulada = 0
+        mejor_pos = 1
+        mejor_diferencia = float('inf')
+        
+        for pos in range(1, len(items_grupo)):
+            suma_izq = sum(item[0] for item in items_grupo[:pos])
+            suma_der = sum(item[0] for item in items_grupo[pos:])
+            diferencia = abs(suma_izq - suma_der)
+            
+            if diferencia < mejor_diferencia:
+                mejor_diferencia = diferencia
+                mejor_pos = pos
+        
+        # Dividir en dos grupos
+        grupo_superior = items_grupo[:mejor_pos]
+        grupo_inferior = items_grupo[mejor_pos:]
+        
+        # Asignar '1' al grupo superior y '0' al inferior
+        for item in grupo_superior:
+            codigo_dict[item[1]] = codigo_dict[item[1]] + '1'
+        
+        for item in grupo_inferior:
+            codigo_dict[item[1]] = codigo_dict[item[1]] + '0'
+        
+        # Recursión en cada grupo
+        dividir(grupo_superior)
+        dividir(grupo_inferior)
+    
+    # Iniciar la división
+    dividir(items)
+    
+    # Convertir diccionario a lista en orden original
+    return [codigo_dict[i] for i in range(n)]
+
+def rendimiento_redundancia(probabilidades, codigos):  
+
+    H = entropia(probabilidades, r=len(get_alfabeto_codigos(codigos)))
+    L = longitud_media(probabilidades, codigos)
+    
+    rendimiento = H / L if L != 0 else 0
+    redundancia = 1 - rendimiento
+    
+    return rendimiento, redundancia
