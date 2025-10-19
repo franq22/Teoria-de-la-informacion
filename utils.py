@@ -345,19 +345,6 @@ def huffman(probabilidades):
     
 
 def shannon_fano(probabilidades):
-    """
-    Implementa el algoritmo de Shannon-Fano para generar un código.
-    
-    Parámetros:
-        - probabilidades (list): Lista de probabilidades
-    
-    Retorna:
-        - list: Lista de códigos en el mismo orden que las probabilidades
-    
-    Ejemplo:
-        >>> shannon_fano([0.20, 0.27, 0.40, 0.13])
-        ['001', '01', '1', '000']
-    """
     n = len(probabilidades)
     
     # Crear lista de items: [probabilidad, índice]
