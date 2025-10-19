@@ -67,30 +67,21 @@ rendimiento, redundancia = utils.rendimiento_redundancia(
     [c1 + c2 for c1 in codigo_n1 for c2 in codigo_n1]
 )
 print(f"Rendimiento: {rendimiento:.4f}, Redundancia: {redundancia:.4f}\n")
+
 print("="*50)
 print("Ejemplo 2 - Código 1 con N=1:")
 probs2 = [0.5, 0.2, 0.3]
 codigo1 = ['11', '010', '00']  # 3 códigos
-print(f"Cumple teorema: {teorema_shannon(probs2, codigo1, 1)}\n")
+print(f"Cumple teorema: {utils.teorema_shannon(probs2, codigo1, 1)}\n")
 print("rendimiento y redundancia:")
 rendimiento, redundancia = utils.rendimiento_redundancia(probs2, codigo1)
 print(f"Rendimiento: {rendimiento:.4f}, Redundancia: {redundancia:.4f}\n")
-print("="*50)
-print("Ejemplo 2 - Código 1 con N=2:")
-probs2 = [0.5, 0.2, 0.3]
-codigo1 = ['11', '010', '00']  # 3 códigos
-print(f"Cumple teorema: {teorema_shannon(probs2, codigo1, 2)}\n")
-print("rendimiento y redundancia:")
-rendimiento, redundancia = utils.rendimiento_redundancia(
-    [p1*p2 for p1 in probs2 for p2 in probs2],
-    [c1 + c2 for c1 in codigo1 for c2 in codigo1]
-)
-print(f"Rendimiento: {rendimiento:.4f}, Redundancia: {redundancia:.4f}\n")
+
 C2 = ["10", "001", "110", "010", "0000", "0001", "111", "0110", "0111"]
 P_2 = [probs2[i]*probs2[j] for i in range(len(probs2)) for j in range(len(probs2))]
 print("="*50)
 print("Ejemplo 2 - Código 2 con N=2:")
-print(f"Cumple teorema: {teorema_shannon(P_2, C2, 1)}\n")
+print(f"Cumple teorema: {utils.teorema_shannon(P_2, C2, 2)}\n")
 print("rendimiento y redundancia:")
 rendimiento, redundancia = utils.rendimiento_redundancia(P_2, C2)
 print(f"Rendimiento: {rendimiento:.4f}, Redundancia: {redundancia:.4f}\n")
