@@ -75,3 +75,5 @@ with open(nombre_archivo, 'wb') as archivo:
 
 mensaje_decodificado = decodificar(mensaje_codificado, SIMBOLOS, huffman_cod)
 print("Mensaje decodificado:", mensaje_decodificado)
+
+print("Tase de compresión:", utils.tasa_de_compresion(mensaje_original, mensaje_codificado))

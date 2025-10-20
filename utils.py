@@ -406,3 +406,169 @@ def rendimiento_redundancia(probabilidades, codigos):
     redundancia = 1 - rendimiento
     
     return rendimiento, redundancia
+
+def codificar(mensaje, alfabeto, codificacion) -> bytearray:
+    # Crear un diccionario de codificación
+    cod_dict = {simbolo: codigo for simbolo, codigo in zip(alfabeto, codificacion)}
+    
+    # Codificar el mensaje
+    mensaje_codificado = ''.join(cod_dict[simbolo] for simbolo in mensaje)
+    
+    # Convertir la cadena de bits a bytearray
+    byte_array = bytearray()
+    for i in range(0, len(mensaje_codificado), 8):
+        byte = mensaje_codificado[i:i+8]
+        byte_array.append(int(byte.ljust(8, '0'), 2))  # Rellenar con ceros si es necesario
+    
+    return byte_array
+
+def decodificar(byte_array: bytearray, alfabeto, codificacion) -> str:
+    # Crear un diccionario de decodificación
+    decod_dict = {codigo: simbolo for simbolo, codigo in zip(alfabeto, codificacion)}
+    
+    # Convertir bytearray a cadena de bits
+    mensaje_codificado = ''.join(f'{byte:08b}' for byte in byte_array)
+    
+    # Decodificar el mensaje
+    mensaje_decodificado = ''
+    codigo_actual = ''
+    for bit in mensaje_codificado:
+        codigo_actual += bit
+        if codigo_actual in decod_dict:
+            mensaje_decodificado += decod_dict[codigo_actual]
+            codigo_actual = ''
+    return mensaje_decodificado
+
+def tasa_de_compresion(mensaje_original: str, mensaje_codificado: bytearray) -> float:
+    tam_original = len(mensaje_original) * 8  
+    tam_codificado = len(mensaje_codificado) * 8  
+
+    if tam_codificado == 0:
+        return float('inf')  
+
+    tasa_compresion = tam_original / tam_codificado
+    return tasa_compresion
+
+def rlc_comprimir(mensaje: str) -> bytearray:
+    byte_array = bytearray()
+    n = len(mensaje)
+    i = 0
+    while i < n:
+        count = 1
+        while i + 1 < n and mensaje[i] == mensaje[i + 1]:
+            count += 1
+            i += 1
+        byte_array.append(ord(mensaje[i]))  # Carácter en ASCII
+        byte_array.append(count)             # Número de repeticiones
+        i += 1
+    return byte_array
+
+def bytearray_a_bits(b: bytearray) -> str:
+    """Devuelve una cadena de '0'/'1' con todos los bytes (8 bits cada uno)."""
+    return ''.join(f'{byte:08b}' for byte in b)
+
+def bits_a_bytearray(bits: str) -> bytearray:
+    """Convierte una cadena de bits a bytearray.
+     Si la longitud de bits no es múltiplo de 8, se rellena con ceros a la derecha."""
+    relleno = (-len(bits)) % 8
+    bits_padded = bits + '0'*relleno
+    ba = bytearray(int(bits_padded[i:i+8], 2) for i in range(0, len(bits_padded), 8))
+    return ba
+
+def hamming_distance(codes):
+    if len(codes) < 2:
+        return 0, 0, 0 
+
+    min_distance = float('inf')
+    
+    # Calcular la distancia de Hamming mínima entre todas las parejas de códigos
+    for i in range(len(codes)):
+        for j in range(i + 1, len(codes)):
+            distance = sum(c1 != c2 for c1, c2 in zip(codes[i], codes[j]))
+            if distance < min_distance:
+                min_distance = distance
+
+    # Calcular la cantidad de errores que se pueden detectar y corregir
+    errors_detectable = min_distance - 1
+    errors_correctable = (min_distance - 1) // 2
+
+    return min_distance, errors_detectable, errors_correctable
+
+def detectar_y_corregir_errores(matriz_str):
+    matriz = [list(fila) for fila in matriz_str]
+    filas = len(matriz)
+    columnas = len(matriz[0])
+
+    filas_con_error = []
+    columnas_con_error = []
+
+    # Verificar paridad de filas (VRC)
+    for i in range(1, filas):
+        data_bits = matriz[i][:-1]  
+        given_parity_bit = matriz[i][-1] 
+        calculated_parity = '1' if "".join(data_bits).count('1') % 2 != 0 else '0'
+        if calculated_parity != given_parity_bit:
+            filas_con_error.append(i)
+
+    # Verificar paridad de columnas (LRC)
+    for j in range(columnas - 1):
+        data_bits = [matriz[i][j] for i in range(1, filas)] 
+        given_parity_bit = matriz[0][j]
+        calculated_parity = '1' if "".join(data_bits).count('1') % 2 != 0 else '0'
+        if calculated_parity != given_parity_bit:
+            columnas_con_error.append(j)
+
+    # Analizar y corregir errores
+    
+    if len(filas_con_error) == 1 and len(columnas_con_error) == 1: 
+        fila = filas_con_error[0]
+        columna = columnas_con_error[0]
+        bit_actual = matriz[fila][columna]
+        matriz[fila][columna] = '1' if bit_actual == '0' else '0'
+
+    elif (len(filas_con_error) == 1 and len(columnas_con_error) == 0) or \
+         (len(filas_con_error) == 0 and len(columnas_con_error) == 1):
+        corner_bit = matriz[0][-1]
+        
+        # Calcular paridad de la fila LRC 
+        lrc_bits = matriz[0][:-1]
+        calc_lrc_parity = '1' if "".join(lrc_bits).count('1') % 2 != 0 else '0'
+        
+        # Calcular paridad de la columna VRC 
+        vrc_bits = [matriz[i][-1] for i in range(1, filas)]
+        calc_vrc_parity = '1' if "".join(vrc_bits).count('1') % 2 != 0 else '0'
+
+        if calc_lrc_parity == calc_vrc_parity:
+            return "—" 
+        else:
+            pass 
+
+    elif len(filas_con_error) == 0 and len(columnas_con_error) == 0:
+        # Verificar paridad cruzada
+        corner_bit = matriz[0][-1]
+        
+        # Calcular paridad de la fila LRC 
+        lrc_bits = matriz[0][:-1]
+        calc_lrc_parity = '1' if "".join(lrc_bits).count('1') % 2 != 0 else '0'
+        
+        # Calcular paridad de la columna VRC 
+        vrc_bits = [matriz[i][-1] for i in range(1, filas)]
+        calc_vrc_parity = '1' if "".join(vrc_bits).count('1') % 2 != 0 else '0'
+
+        if calc_lrc_parity != corner_bit or calc_vrc_parity != corner_bit:
+            return "—" 
+    
+    else:
+        return "—"
+
+    # Decodificar el mensaje
+    mensaje_decodificado = ''
+    try:
+        for i in range(1, filas): 
+            bits_ascii = "".join(matriz[i][:-1]) # Toma los 7 bits de datos
+            valor_ascii = int(bits_ascii, 2)
+            mensaje_decodificado += chr(valor_ascii)
+    except (ValueError, TypeError):
+        return "—" 
+
+    return mensaje_decodificado
