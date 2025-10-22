@@ -5,6 +5,8 @@ b. Dado un byte que se obtuvo como resultado de la función anterior, verificar 
 correcto o tiene errores.
 """
 
+import utils
+
 def char_to_ascii_with_parity(char):
     ascii_value = ord(char)
     binary_code = format(ascii_value, '07b')  # Obtener el código ASCII en 7 bits
@@ -130,5 +132,5 @@ def detectar_y_corregir_errores(matriz_str):
 
 for key, matriz in matrices.items():
     print(f"\n--- Procesando matriz '{key}' ---")
-    mensaje = detectar_y_corregir_errores(matriz)
+    mensaje = utils.detectar_y_corregir_errores(matriz)
     print(f"Mensaje original: '{mensaje}'")

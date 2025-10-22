@@ -494,6 +494,19 @@ def hamming_distance(codes):
 
     return min_distance, errors_detectable, errors_correctable
 
+def char_to_ascii_with_parity(char):
+    ascii_value = ord(char)
+    binary_code = format(ascii_value, '07b')  # Obtener el código ASCII en 7 bits
+    parity_bit = str(binary_code.count('1') % 2)  # Calcular el bit de paridad (paridad par)
+    byte_with_parity = binary_code + parity_bit  # Añadir el bit de paridad al final
+    return byte_with_parity
+
+def verify_ascii_with_parity(byte):
+    data_bits = byte[:-1]  # Los primeros 7 bits son los datos
+    parity_bit = byte[-1]  # El último bit es el bit de paridad
+    calculated_parity = str(data_bits.count('1') % 2)  # Calcular la paridad de los datos
+    return calculated_parity == parity_bit  # Verificar si la paridad coincide
+
 def detectar_y_corregir_errores(matriz_str):
     matriz = [list(fila) for fila in matriz_str]
     filas = len(matriz)
@@ -501,6 +514,20 @@ def detectar_y_corregir_errores(matriz_str):
 
     filas_con_error = []
     columnas_con_error = []
+
+    # Verificar paridad cruzada
+    corner_bit = matriz[0][-1]
+        
+    # Calcular paridad de la fila LRC 
+    lrc_bits = matriz[0][:-1]
+    calc_lrc_parity = '1' if "".join(lrc_bits).count('1') % 2 != 0 else '0'
+    
+    # Calcular paridad de la columna VRC 
+    vrc_bits = [matriz[i][-1] for i in range(1, filas)]
+    calc_vrc_parity = '1' if "".join(vrc_bits).count('1') % 2 != 0 else '0'
+
+    if calc_lrc_parity != corner_bit or calc_vrc_parity != corner_bit:
+        return "—"     
 
     # Verificar paridad de filas (VRC)
     for i in range(1, filas):
@@ -525,40 +552,7 @@ def detectar_y_corregir_errores(matriz_str):
         columna = columnas_con_error[0]
         bit_actual = matriz[fila][columna]
         matriz[fila][columna] = '1' if bit_actual == '0' else '0'
-
-    elif (len(filas_con_error) == 1 and len(columnas_con_error) == 0) or \
-         (len(filas_con_error) == 0 and len(columnas_con_error) == 1):
-        corner_bit = matriz[0][-1]
-        
-        # Calcular paridad de la fila LRC 
-        lrc_bits = matriz[0][:-1]
-        calc_lrc_parity = '1' if "".join(lrc_bits).count('1') % 2 != 0 else '0'
-        
-        # Calcular paridad de la columna VRC 
-        vrc_bits = [matriz[i][-1] for i in range(1, filas)]
-        calc_vrc_parity = '1' if "".join(vrc_bits).count('1') % 2 != 0 else '0'
-
-        if calc_lrc_parity == calc_vrc_parity:
-            return "—" 
-        else:
-            pass 
-
-    elif len(filas_con_error) == 0 and len(columnas_con_error) == 0:
-        # Verificar paridad cruzada
-        corner_bit = matriz[0][-1]
-        
-        # Calcular paridad de la fila LRC 
-        lrc_bits = matriz[0][:-1]
-        calc_lrc_parity = '1' if "".join(lrc_bits).count('1') % 2 != 0 else '0'
-        
-        # Calcular paridad de la columna VRC 
-        vrc_bits = [matriz[i][-1] for i in range(1, filas)]
-        calc_vrc_parity = '1' if "".join(vrc_bits).count('1') % 2 != 0 else '0'
-
-        if calc_lrc_parity != corner_bit or calc_vrc_parity != corner_bit:
-            return "—" 
-    
-    else:
+    elif (len(filas_con_error) != 0 or len(columnas_con_error) != 0):
         return "—"
 
     # Decodificar el mensaje
@@ -572,3 +566,39 @@ def detectar_y_corregir_errores(matriz_str):
         return "—" 
 
     return mensaje_decodificado
+
+def mensaje_a_bytes_con_paridad(mensaje):
+    matriz = []
+    
+    # Convertir cada carácter a su representación ASCII con paridad
+    for char in mensaje:
+        byte_with_parity = char_to_ascii_with_parity(char)
+        matriz.append(list(byte_with_parity))
+    
+    filas = len(matriz)
+    columnas = len(matriz[0])
+    
+    # Calcular bits de paridad LRC 
+    lrc_bits = []
+    for j in range(columnas): 
+        column_bits = [matriz[i][j] for i in range(filas)]
+        parity_bit = '1' if column_bits.count('1') % 2 != 0 else '0'
+        lrc_bits.append(parity_bit)
+    
+    matriz.insert(0, lrc_bits) # Añadir fila de paridad LRC al principio 
+    
+    # Convertir la matriz a bytearray
+    byte_array = bytearray()
+    for fila in matriz:
+        byte_str = ''.join(fila)
+        byte_value = int(byte_str, 2)
+        byte_array.append(byte_value)
+    
+    return byte_array
+
+def bytes_con_paridad_a_mensaje(byte_array: bytearray) -> str:
+    if not byte_array:
+        return ""
+    matriz_str = [f'{byte:08b}' for byte in byte_array]
+    mensaje = detectar_y_corregir_errores(matriz_str)
+    return "" if mensaje == "—" else mensaje
