@@ -602,3 +602,115 @@ def bytes_con_paridad_a_mensaje(byte_array: bytearray) -> str:
     matriz_str = [f'{byte:08b}' for byte in byte_array]
     mensaje = detectar_y_corregir_errores(matriz_str)
     return "" if mensaje == "—" else mensaje
+
+def calcular_matriz_canal(secuencia_entrada: str, secuencia_salida: str) -> list[list[float]]:
+    if len(secuencia_entrada) != len(secuencia_salida):
+        raise ValueError("Las secuencias de entrada y salida deben tener la misma longitud.")
+
+    alfabeto_A = sorted(list(set(secuencia_entrada)))
+    alfabeto_B = sorted(list(set(secuencia_salida)))
+
+    conteo_conjunto = {a: {b: 0 for b in alfabeto_B} for a in alfabeto_A}
+    conteo_entrada = {a: 0 for a in alfabeto_A}
+    
+    for a, b in zip(secuencia_entrada, secuencia_salida):
+        conteo_conjunto[a][b] += 1
+        conteo_entrada[a] += 1
+            
+    matriz_canal = []
+    
+    for a in alfabeto_A:
+        fila_actual = []
+        total_a = conteo_entrada[a]
+        
+        for b in alfabeto_B:
+            if total_a > 0:
+                probabilidad = conteo_conjunto[a][b] / total_a
+            else:
+                probabilidad = 0.0  
+            
+            fila_actual.append(probabilidad)
+        
+        matriz_canal.append(fila_actual)
+                
+    return matriz_canal
+
+def calcular_prob_simultaneas(prob_a_priori: list[float], 
+                               matriz_canal: list[list[float]]) -> list[list[float]]:
+    """
+    Calcula la matriz de probabilidades simultáneas P(ai, bj).
+    P(ai, bj) = P(bj | ai) * P(ai)
+    """
+    num_a = len(prob_a_priori)
+    if num_a == 0:
+        return []
+    
+    num_b = len(matriz_canal[0])
+    
+    matriz_simultanea = [[0.0 for _ in range(num_b)] for _ in range(num_a)]
+    
+    for i in range(num_a):  
+        for j in range(num_b):  
+            prob_ai = prob_a_priori[i]
+            prob_bj_dado_ai = matriz_canal[i][j]
+            
+            matriz_simultanea[i][j] = prob_bj_dado_ai * prob_ai
+            
+    return matriz_simultanea
+
+def calcular_prob_salida(prob_a_priori: list[float], 
+                          matriz_canal: list[list[float]]) -> list[float]:
+    """
+    Calcula la lista de probabilidades de los símbolos de salida P(bj).
+    P(bj) = Σ [P(ai, bj)] para todo i
+    """
+
+    matriz_simultanea = calcular_prob_simultaneas(prob_a_priori, matriz_canal)
+    
+    if not matriz_simultanea:
+        return []
+        
+    num_a = len(matriz_simultanea)
+    num_b = len(matriz_simultanea[0])
+    
+    prob_salida_bj = [0.0 for _ in range(num_b)]
+    
+    for j in range(num_b):  
+        suma_columna = 0.0
+        for i in range(num_a):  
+            suma_columna += matriz_simultanea[i][j]
+        prob_salida_bj[j] = suma_columna
+        
+    return prob_salida_bj
+
+def calcular_prob_a_posteriori(prob_a_priori: list[float], 
+                                matriz_canal: list[list[float]]) -> list[list[float]]:
+    """
+    Calcula la matriz de probabilidades a posteriori P(ai | bj).
+    P(ai | bj) = P(ai, bj) / P(bj)
+    """
+    # 1. Calcular el numerador: P(ai, bj)
+    matriz_simultanea = calcular_prob_simultaneas(prob_a_priori, matriz_canal)
+    
+    # 2. Calcular el denominador: P(bj)
+    prob_salida_bj = calcular_prob_salida(prob_a_priori, matriz_canal)
+    
+    if not matriz_simultanea:
+        return []
+
+    num_a = len(matriz_simultanea)
+    num_b = len(matriz_simultanea[0])
+    
+    matriz_a_posteriori = [[0.0 for _ in range(num_b)] for _ in range(num_a)]
+    
+    for i in range(num_a):
+        for j in range(num_b):
+            numerador = matriz_simultanea[i][j]
+            denominador = prob_salida_bj[j]
+            
+            if denominador == 0:
+                matriz_a_posteriori[i][j] = 0.0 
+            else:
+                matriz_a_posteriori[i][j] = numerador / denominador
+                
+    return matriz_a_posteriori
