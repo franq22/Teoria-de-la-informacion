@@ -24,3 +24,48 @@ matriz_canal_2 = utils.calcular_matriz_canal(canal_2_entrada, canal_2_salida)
 print("Canal 2 - Matriz del canal:")
 for fila in matriz_canal_2:
     print(fila)
+
+probs_salida_1 = utils.calcular_prob_salida(probs1, matriz_canal_1)
+print("Canal 1 - Probabilidades de los símbolos de salida:", probs_salida_1)
+probs_salida_2 = utils.calcular_prob_salida(probs2, matriz_canal_2)
+print("Canal 2 - Probabilidades de los símbolos de salida:", probs_salida_2)
+
+probs_a_posteriori_1 = utils.calcular_prob_a_posteriori(probs1, matriz_canal_1)
+print("Canal 1 - Probabilidades a posteriori P(A|B):")
+for i, a in enumerate(alfa1):
+    fila_posteriori = {}
+    for j, b in enumerate(sorted(list(set(canal_1_salida)))):
+        fila_posteriori[b] = probs_a_posteriori_1[i][j]
+    print(f"P(A={a}|B):", fila_posteriori)
+
+probs_a_posteriori_2 = utils.calcular_prob_a_posteriori(probs2, matriz_canal_2)
+print("Canal 2 - Probabilidades a posteriori P(A|B):")
+for i, a in enumerate(alfa2):
+    fila_posteriori = {}
+    for j, b in enumerate(sorted(list(set(canal_2_salida)))):
+        fila_posteriori[b] = probs_a_posteriori_2[i][j]
+    print(f"P(A={a}|B):", fila_posteriori)
+
+probs_simultaneas_1 = utils.calcular_prob_simultaneas(probs1, matriz_canal_1)
+print("Canal 1 - Probabilidades simultáneas P(A,B):")
+for i, a in enumerate(alfa1):
+    fila_simultaneos = {}
+    for j, b in enumerate(sorted(list(set(canal_1_salida)))):
+        fila_simultaneos[b] = probs_simultaneas_1[i][j]
+    print(f"P(A={a},B):", fila_simultaneos)
+probs_simultaneas_2 = utils.calcular_prob_simultaneas(probs2, matriz_canal_2)
+print("Canal 2 - Probabilidades simultáneas P(A,B):")
+for i, a in enumerate(alfa2):
+    fila_simultaneos = {}
+    for j, b in enumerate(sorted(list(set(canal_2_salida)))):
+        fila_simultaneos[b] = probs_simultaneas_2[i][j]
+    print(f"P(A={a},B):", fila_simultaneos)
+
+entropia_a_priori_1 = utils.entropia(probs1)
+print("Canal 1 - Entropía a priori:", entropia_a_priori_1)
+entropia_a_posteriori_1 = utils.calcular_entropias_a_posteriori(probs1, matriz_canal_1)
+print("Canal 1 - Entropías a posteriori:", entropia_a_posteriori_1)
+entropia_a_priori_2 = utils.entropia(probs2)
+print("Canal 2 - Entropía a priori:", entropia_a_priori_2)
+entropia_a_posteriori_2 = utils.calcular_entropias_a_posteriori(probs2, matriz_canal_2)
+print("Canal 2 - Entropías a posteriori:", entropia_a_posteriori_2)

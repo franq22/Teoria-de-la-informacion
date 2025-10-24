@@ -714,3 +714,20 @@ def calcular_prob_a_posteriori(prob_a_priori: list[float],
                 matriz_a_posteriori[i][j] = numerador / denominador
                 
     return matriz_a_posteriori
+
+def calcular_entropias_a_posteriori(probs_entrada: list[float], matriz_canal: list[list[float]]) -> list[float]:
+    alfabeto_B = sorted(list(range(len(matriz_canal[0]))))  
+    probs_salida = calcular_prob_salida(probs_entrada, matriz_canal)
+    entropias_a_posteriori = []
+
+    for j, b in enumerate(alfabeto_B):
+        entropia = 0.0
+        for i, a in enumerate(range(len(matriz_canal))):
+            prob_a_posteriori = 0.0
+            if probs_salida[j] > 0:
+                prob_a_posteriori = (probs_entrada[i] * matriz_canal[i][j]) / probs_salida[j]
+            if prob_a_posteriori > 0:
+                entropia += cantidadInformacion(prob_a_posteriori) * prob_a_posteriori
+        entropias_a_posteriori.append(entropia)
+
+    return entropias_a_posteriori

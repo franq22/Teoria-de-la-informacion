@@ -122,3 +122,8 @@ matriz_simultanea = calcular_prob_simultaneas(prob_a_priori, matriz_canal)
 print("Matriz de probabilidades simultáneas P(ai, bj):")
 for fila in matriz_simultanea:
     print(fila)
+
+entropias_a_priori = utils.entropia(prob_a_priori)
+print("Entropía a priori H(A):", entropias_a_priori)
+entropia_a_posteriori = utils.calcular_entropias_a_posteriori(prob_a_priori, matriz_canal)
+print("Entropías a posteriori H(A|B):", entropia_a_posteriori)
