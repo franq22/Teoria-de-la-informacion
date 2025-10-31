@@ -48,3 +48,26 @@ print("Alfabeto de salida (B):", alfabeto_B)
 matriz = calcular_matriz_canal(entrada, salida)
 alfa, probs = utils.getAlfaProbabilidades(entrada)
 print("Alfabeto y probabilidades de entrada:", alfa, probs)
+
+probs_salida = utils.calcular_prob_salida(probs, matriz)
+print("Probabilidades de los símbolos de salida:", probs_salida)
+probs_a_posteriori = utils.calcular_prob_a_posteriori(probs, matriz)
+print("Probabilidades a posteriori P(A|B):")
+for i, a in enumerate(alfabeto_A):
+    fila_posteriori = {}
+    for j, b in enumerate(alfabeto_B):
+        fila_posteriori[b] = probs_a_posteriori[i][j]
+    print(f"P(A={a}|B):", fila_posteriori)
+
+simulteanos = utils.calcular_prob_simultaneas(probs, matriz)
+print("Probabilidades simultáneas P(A,B):")
+for i, a in enumerate(alfabeto_A):
+    fila_simultaneos = {}
+    for j, b in enumerate(alfabeto_B):
+        fila_simultaneos[b] = simulteanos[i][j]
+    print(f"P(A={a},B):", fila_simultaneos)
+
+entropia_a_priori = utils.entropia(probs)
+print("Entropía a priori H(A):", entropia_a_priori) 
+entropia_a_posteriori = utils.calcular_entropias_a_posteriori(probs, matriz)
+print("Entropías a posteriori H(A|B):", entropia_a_posteriori)
