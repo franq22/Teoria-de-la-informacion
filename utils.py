@@ -635,7 +635,7 @@ def calcular_matriz_canal(secuencia_entrada: str, secuencia_salida: str) -> list
                 
     return matriz_canal
 
-def calcular_prob_simultaneas(prob_a_priori: list[float], 
+def calcular_matriz_simultanea(prob_a_priori: list[float], 
                                matriz_canal: list[list[float]]) -> list[list[float]]:
     """
     Calcula la matriz de probabilidades simultáneas P(ai, bj).
@@ -665,7 +665,7 @@ def calcular_prob_salida(prob_a_priori: list[float],
     P(bj) = Σ [P(ai, bj)] para todo i
     """
 
-    matriz_simultanea = calcular_prob_simultaneas(prob_a_priori, matriz_canal)
+    matriz_simultanea = calcular_matriz_simultanea(prob_a_priori, matriz_canal)
     
     if not matriz_simultanea:
         return []
@@ -690,7 +690,7 @@ def calcular_prob_a_posteriori(prob_a_priori: list[float],
     P(ai | bj) = P(ai, bj) / P(bj)
     """
     # 1. Calcular el numerador: P(ai, bj)
-    matriz_simultanea = calcular_prob_simultaneas(prob_a_priori, matriz_canal)
+    matriz_simultanea = calcular_matriz_simultanea(prob_a_priori, matriz_canal)
     
     # 2. Calcular el denominador: P(bj)
     prob_salida_bj = calcular_prob_salida(prob_a_priori, matriz_canal)
@@ -731,3 +731,68 @@ def calcular_entropias_a_posteriori(probs_entrada: list[float], matriz_canal: li
         entropias_a_posteriori.append(entropia)
 
     return entropias_a_posteriori
+
+def calcular_equivocacion(probs_entrada: list[float], matriz_canal: list[list[float]]) -> float:
+    probs_salida = calcular_prob_salida(probs_entrada, matriz_canal)
+    equivocacion = 0.0
+
+    for j in range(len(matriz_canal[0])):
+        entropia_a_posteriori = 0.0
+        for i in range(len(matriz_canal)):
+            prob_a_posteriori = 0.0
+            if probs_salida[j] > 0:
+                prob_a_posteriori = (probs_entrada[i] * matriz_canal[i][j]) / probs_salida[j]
+            if prob_a_posteriori > 0:
+                entropia_a_posteriori += cantidadInformacion(prob_a_posteriori) * prob_a_posteriori
+        equivocacion += probs_salida[j] * entropia_a_posteriori
+
+    return equivocacion
+
+def calcular_perdida(probs_entrada: list[float], matriz_canal: list[list[float]]) -> float:
+    perdida = 0.0
+
+    for i in range(len(matriz_canal)):
+        entropia_a_priori = 0.0
+        for j in range(len(matriz_canal[0])):
+            prob_a_priori = 0.0
+            if probs_entrada[i] > 0:
+                prob_a_priori = (probs_entrada[i] * matriz_canal[i][j]) / probs_entrada[i]
+            if prob_a_priori > 0:
+                entropia_a_priori += cantidadInformacion(prob_a_priori) * prob_a_priori
+        perdida += probs_entrada[i] * entropia_a_priori
+
+    return perdida
+
+def calcular_entropia_afin(probs_entrada: list[float], matriz_canal: list[list[float]]) -> float:
+    matriz_simultanea = calcular_matriz_simultanea(probs_entrada, matriz_canal)
+    entropia_afin = 0.0
+    num_a = len(probs_entrada)
+    if num_a == 0: return 0.0
+    num_b = len(matriz_canal[0])
+
+    for i in range(num_a):
+        for j in range(num_b):
+            prob_conjunta = matriz_simultanea[i][j]
+            if prob_conjunta > 0:
+                entropia_afin += prob_conjunta * cantidadInformacion(prob_conjunta)
+                
+    return entropia_afin
+
+def calcular_informacion_mutua(probs_entrada: list[float], matriz_canal: list[list[float]]) -> float:
+    matriz_simultanea = calcular_matriz_simultanea(probs_entrada, matriz_canal)
+    probs_salida = calcular_prob_salida(probs_entrada, matriz_canal)
+    informacion_mutua = 0.0
+    num_a = len(probs_entrada)
+    if num_a == 0: return 0.0
+    num_b = len(probs_salida)
+
+    for i in range(num_a):
+        prob_ai = probs_entrada[i]
+        for j in range(num_b):
+            prob_bj = probs_salida[j]
+            prob_conjunta = matriz_simultanea[i][j]
+            if prob_conjunta > 0:
+                termino_log = prob_conjunta / (prob_ai * prob_bj)
+                informacion_mutua += prob_conjunta * math.log2(termino_log)
+                
+    return informacion_mutua
