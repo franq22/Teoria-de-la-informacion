@@ -732,7 +732,7 @@ def calcular_entropias_a_posteriori(probs_entrada: list[float], matriz_canal: li
 
     return entropias_a_posteriori
 
-def calcular_equivocacion(probs_entrada: list[float], matriz_canal: list[list[float]]) -> float:
+def calcular_equivocacion_ruido(probs_entrada: list[float], matriz_canal: list[list[float]]) -> float:
     probs_salida = calcular_prob_salida(probs_entrada, matriz_canal)
     equivocacion = 0.0
 
@@ -796,3 +796,132 @@ def calcular_informacion_mutua(probs_entrada: list[float], matriz_canal: list[li
                 informacion_mutua += prob_conjunta * math.log2(termino_log)
                 
     return informacion_mutua
+
+def es_canal_sin_ruido(matriz_canal: list[list[float]]) -> bool:
+    if not matriz_canal:
+        return False
+        
+    num_filas = len(matriz_canal)
+    num_columnas = len(matriz_canal[0])
+
+    for j_idx in range(num_columnas):
+        contador_no_cero = 0
+        
+        for i_idx in range(num_filas):
+            if matriz_canal[i_idx][j_idx] != 0.0:
+                contador_no_cero += 1
+                
+        if contador_no_cero != 1:
+            return False
+            
+    return True
+
+def es_canal_determinante(matriz_canal: list[list[float]]) -> bool:
+    if not matriz_canal:
+        return False
+
+    for fila_actual in matriz_canal:
+        contador_no_cero = 0
+        
+        for probabilidad in fila_actual:
+            if probabilidad != 0.0:
+                contador_no_cero += 1
+        
+        if contador_no_cero != 1:
+            return False
+            
+    return True
+
+def se_pueden_combinar_columnas(matriz_canal: list[list[float]], col1: int, col2: int) -> bool:
+    """
+    Verifica si dos columnas son combinables para una reducción suficiente.
+    
+    Esto es cierto si y solo si los vectores de las columnas son proporcionales,
+    es decir, P(b_col1 | a_i) = C * P(b_col2 | a_i) para todas las entradas 'i'.
+    """
+    if not matriz_canal:
+        return False
+        
+    num_filas = len(matriz_canal)
+    constante_proporcionalidad = None
+
+    # 1. Encontrar la constante de proporcionalidad (C)
+    for i in range(num_filas):
+        prob1 = matriz_canal[i][col1]
+        prob2 = matriz_canal[i][col2]
+
+        # Usamos math.isclose para manejar la precisión de los floats
+        if not math.isclose(prob2, 0.0):
+            # Encontramos una fila donde col2 no es cero,
+            # esto define la constante
+            constante_proporcionalidad = prob1 / prob2
+            break
+        elif not math.isclose(prob1, 0.0):
+            # Si col2 es 0 pero col1 no es 0, la única forma de que
+            # sean proporcionales es que col2 sea *siempre* 0.
+            # Verificaremos esto en el paso 2.
+            constante_proporcionalidad = float('inf') # Usamos inf como bandera
+            break
+    
+    # Si ambas columnas son completamente cero, son proporcionales (C=cualquier cosa)
+    if constante_proporcionalidad is None:
+        return True
+
+    # 2. Verificar que todas las filas respeten la constante
+    for i in range(num_filas):
+        prob1 = matriz_canal[i][col1]
+        prob2 = matriz_canal[i][col2]
+        
+        if constante_proporcionalidad == float('inf'):
+            # Si p1 > 0, p2 debe ser 0.
+            if not math.isclose(prob2, 0.0):
+                return False # p2 no fue 0
+        else:
+            # Comprobar P(b1|ai) = C * P(b2|ai)
+            if not math.isclose(prob1, constante_proporcionalidad * prob2):
+                return False
+                
+    return True
+
+def generar_matriz_canal_determinante(matriz_canal: list[list[float]], col1: int, col2: int) -> list[list[float]]:
+    if not matriz_canal:
+        return []
+        
+    num_filas = len(matriz_canal)
+    num_columnas = len(matriz_canal[0])
+    
+    nueva_matriz = []
+    
+    for i in range(num_filas):
+        nueva_fila = []
+        for j in range(num_columnas):
+            if j == col1:
+                nueva_fila.append(matriz_canal[i][col1] + matriz_canal[i][col2])
+            elif j == col2:
+                continue
+            else:
+                nueva_fila.append(matriz_canal[i][j])
+        nueva_matriz.append(nueva_fila)
+        
+    return nueva_matriz
+
+def generar_matriz_reducida(matriz_original: list[list[float]]) -> list[list[float]]:
+    matriz_reducida = [fila[:] for fila in matriz_original]
+    
+    hubo_reduccion = True
+    while hubo_reduccion:
+        hubo_reduccion = False
+        num_columnas_actual = len(matriz_reducida[0])
+        
+        for col1 in range(num_columnas_actual):
+            for col2 in range(col1 + 1, num_columnas_actual):
+                
+                if se_pueden_combinar_columnas(matriz_reducida, col1, col2):
+                    
+                    matriz_reducida = generar_matriz_canal_determinante(matriz_reducida, col1, col2)
+                    hubo_reduccion = True
+                    break
+            if hubo_reduccion:
+                break
+                
+    return matriz_reducida
