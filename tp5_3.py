@@ -11,14 +11,14 @@ canal_1_salida = "1001111111100011101101010111110110"
 canal_2_entrada = "110101100110101100110101100111110011"
 canal_2_salida = "110021102110022010220121122100112011"
 
-alfa1, probs1 = utils.getAlfaProbabilidades(canal_1_entrada)
+alfa1, probs1 = utils.getAlfaProbabilidades_binario(canal_1_entrada)
 print("Canal 1 - Alfabeto y probabilidades de entrada:", alfa1, probs1)
 matriz_canal_1 = utils.calcular_matriz_canal(canal_1_entrada, canal_1_salida)
 print("Canal 1 - Matriz del canal:")
 for fila in matriz_canal_1:
     print(fila)
 
-alfa2, probs2 = utils.getAlfaProbabilidades(canal_2_entrada)
+alfa2, probs2 = utils.getAlfaProbabilidades_binario(canal_2_entrada)
 print("Canal 2 - Alfabeto y probabilidades de entrada:", alfa2, probs2)
 matriz_canal_2 = utils.calcular_matriz_canal(canal_2_entrada, canal_2_salida)
 print("Canal 2 - Matriz del canal:")
@@ -46,14 +46,12 @@ for i, a in enumerate(alfa2):
         fila_posteriori[b] = probs_a_posteriori_2[i][j]
     print(f"P(A={a}|B):", fila_posteriori)
 
-probs_simultaneas_1 = utils.calcular_prob_simultaneas(probs1, matriz_canal_1)
+probs_simultaneas_1 = utils.calcular_matriz_simultanea(probs1, matriz_canal_1)
 print("Canal 1 - Probabilidades simultáneas P(A,B):")
-for i, a in enumerate(alfa1):
-    fila_simultaneos = {}
-    for j, b in enumerate(sorted(list(set(canal_1_salida)))):
-        fila_simultaneos[b] = probs_simultaneas_1[i][j]
-    print(f"P(A={a},B):", fila_simultaneos)
-probs_simultaneas_2 = utils.calcular_prob_simultaneas(probs2, matriz_canal_2)
+for fila in probs_simultaneas_1:
+    print(fila)
+
+probs_simultaneas_2 = utils.calcular_matriz_simultanea(probs2, matriz_canal_2)
 print("Canal 2 - Probabilidades simultáneas P(A,B):")
 for i, a in enumerate(alfa2):
     fila_simultaneos = {}

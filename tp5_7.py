@@ -108,17 +108,17 @@ matriz_canal = [
 ]
 
 # a. Calcular las probabilidades de los símbolos de salida
-prob_salida = calcular_prob_salida(prob_a_priori, matriz_canal)
+prob_salida = utils.calcular_prob_salida(prob_a_priori, matriz_canal)
 print("Probabilidades de los símbolos de salida P(bj):", prob_salida)
 
 # b. Obtener las probabilidades a posteriori del canal
-matriz_a_posteriori = calcular_prob_a_posteriori(prob_a_priori, matriz_canal)
+matriz_a_posteriori = utils.calcular_prob_a_posteriori(prob_a_priori, matriz_canal)
 print("Matriz de probabilidades a posteriori P(ai | bj):")
 for fila in matriz_a_posteriori:
     print(fila)
 
 # c. Determinar las probabilidades de los eventos simultáneos
-matriz_simultanea = calcular_prob_simultaneas(prob_a_priori, matriz_canal)
+matriz_simultanea = utils.calcular_matriz_simultanea(prob_a_priori, matriz_canal)
 print("Matriz de probabilidades simultáneas P(ai, bj):")
 for fila in matriz_simultanea:
     print(fila)

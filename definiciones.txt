@@ -1,0 +1,99 @@
+def teorema_shannon(...)
+Esta función verifica el Primer Teorema de Shannon. Compara la entropía de la fuente por símbolo (H) con la longitud media por símbolo (L/N) del código dado, y devuelve True si la longitud media se encuentra dentro de los límites teóricos del teorema H es menor o igual que L/N, y esta ultima es menor a H + 1/N.
+
+def huffman(...)
+Esta función genera un código de compresión óptimo (Código de Huffman) a partir de una lista de probabilidades. Utiliza una cola de prioridad (heapq) para tomar recursivamente los dos símbolos menos probables, asignarles '0' y '1', y combinarlos en un nuevo nodo que vuelve a la cola, construyendo así los códigos binarios desde las hojas hasta la raíz.
+
+def shannon_fano(...)
+Esta función genera un código de compresión (generalmente bueno, pero no siempre óptimo) usando el método de Shannon-Fano. Primero ordena las probabilidades de mayor a menor y luego divide recursivamente esa lista en dos subgrupos con sumas de probabilidad lo más parecidas posible, asignando '1' a un grupo y '0' al otro en cada paso.
+
+def rendimiento_redundancia(...)
+Esta función mide la eficiencia de un código. Calcula la entropía (H, el límite teórico) y la longitud media (L, el costo real) y devuelve el rendimiento (H/L), que idealmente es 1 (100%), y la redundancia (1 - rendimiento), que representa el espacio "desperdiciado".
+
+def codificar(...)
+Esta función traduce un mensaje de texto a un bytearray binario comprimido usando un código (como el de Huffman). Crea un diccionario para mapear símbolos a bits, convierte el mensaje en un único string de bits, lo corta en pedazos de 8 bits (rellenando el último) y los empaqueta en bytes.
+
+def decodificar(...)
+Esta función revierte el proceso de codificar. Convierte el bytearray de vuelta a un string de bits, luego itera sobre ese string acumulando bits hasta que la secuencia acumulada coincide con un código válido en el diccionario, reconstruyendo así el mensaje original.
+
+def tasa_de_compresion(...)
+Esta función mide cuánto se comprimió un mensaje. Calcula el tamaño original del mensaje en bits (asumiendo 8 bits por carácter) y lo divide por el tamaño final del bytearray codificado (también en bits), devolviendo un ratio que indica cuántas veces es más pequeño el archivo comprimido.
+
+def rlc_comprimir(...)
+Esta función comprime un mensaje usando rlc, que es bueno para secuencias repetidas. Recorre el texto y, en lugar de guardar "AAAAA", guarda el valor ASCII del carácter (ord('A')) seguido de un byte que indica cuántas veces se repite (5), optimizando el espacio.
+
+def hamming_distance(...)
+Esta función mide la robustez de un código frente a errores. Compara todos los códigos de una lista entre sí para encontrar la distancia de Hamming mínima (el N.º de bits diferentes) y, basándose en eso, devuelve la distancia mínima, cuántos errores puede detectar (d-1) y cuántos puede corregir (d - 1//2).
+
+def char_to_ascii_with_parity(...)
+Esta función de codificación de canal añade detección de errores simple (VRC). Toma un carácter (ej: 'A'), lo convierte a su código ASCII de 7 bits ("1000001"), cuenta la cantidad de '1's (2, que es par), y añade un bit de paridad (ej: '0' para paridad par) al final, devolviendo "10000010".
+
+def verify_ascii_with_parity(...)
+Esta función comprueba un byte de 8 bits recibido con paridad VRC. Separa los 7 bits de datos del bit de paridad recibido, recalcula la paridad de los datos y devuelve True solo si la paridad calculada coincide con la paridad que se recibió.
+
+def detectar_y_corregir_errores(...)
+Esta función corrige un error de un solo bit en un bloque de paridad (VRC+LRC). Primero, verifica que la "paridad de paridades" (esquina) sea correcta. Luego, busca la fila (VRC) y la columna (LRC) que tienen errores de paridad; si encuentra exactamente una de cada, invierte el bit en esa intersección ([fila][columna]) para corregirlo y devuelve el mensaje decodificado.
+
+def mensaje_a_bytes_con_paridad(...)
+Esta función construye la matriz de paridad 2D para un mensaje. Para cada carácter, genera su byte de 8 bits (ASCII + VRC) formando las filas de datos. Luego, calcula la paridad de cada columna (LRC) y añade esa fila LRC al principio (fila 0) de la matriz, convirtiendo el resultado en un bytearray para transmitir.
+
+def bytes_con_paridad_a_mensaje(...)
+Esta es la función decodificadora para la anterior. Recibe el bytearray (que puede tener un error), lo convierte de nuevo en una matriz de strings de bits (con la fila LRC en la posición 0) y se la pasa a detectar_y_corregir_errores para que esta haga la corrección y devuelva el mensaje limpio.
+
+def calcular_matriz_canal(...)
+Esta función estima la matriz de probabilidad P(B|A) de un canal a partir de secuencias de prueba. Cuenta cuántas veces ocurrió cada par entrada-salida (ej: 'A' -> 'B') y lo divide por el conteo total de esa entrada ('A'), devolviendo así la matriz de probabilidades condicionales.
+
+def calcular_matriz_simultanea(...)
+Esta función calcula la matriz de probabilidad conjunta P(A,B). Toma la matriz del canal P(B|A) y multiplica cada fila i por la probabilidad a priori de la entrada correspondiente, P(a_i), devolviendo la nueva matriz P(A,B).
+
+def calcular_prob_salida(...)
+Esta función calcula la probabilidad de cada símbolo de salida P(B). Primero obtiene la matriz conjunta P(A,B) (llamando a calcular_matriz_simultanea) y luego devuelve una lista que contiene la suma de cada columna de esa matriz.
+
+def calcular_prob_a_posteriori(...)
+Esta función calcula la matriz de equivocación P(A|B) usando el Teorema de Bayes. Obtiene P(A,B) (numerador) y P(B) (denominador) y luego devuelve una nueva matriz donde cada celda es el resultado de la división P(ai, bj) / P(bj).
+
+def calcular_entropias_a_posteriori(...)
+Esta función calcula la incertidumbre que queda sobre la entrada A después de haber observado una salida bj específica. Devuelve una lista de entropías, donde cada valor es la entropía de una columna de la matriz P(A|B).
+
+def calcular_equivocacion_ruido(...)
+Esta función calcula la equivocación o ruido H(A|B), que es la incertidumbre promedio sobre la entrada después de ver la salida. Lo hace calculando la entropía a posteriori de cada salida H(A|b_j) y promediándolas, ponderadas por la probabilidad de cada salida P(b_j).
+
+def calcular_perdida(...)
+Esta función calcula la pérdida H(B|A), que es la incertidumbre promedio sobre la salida sabiendo cuál fue la entrada. Lo hace calculando la entropía de cada fila de la matriz del canal H(B|a_i) y promediándolas, ponderadas por la probabilidad de cada entrada P(a_i).
+
+def calcular_entropia_afin(...)
+Esta función calcula la entropía conjunta H(A,B), que es la incertidumbre total de todo el sistema. Obtiene la matriz de probabilidad conjunta P(A,B) y calcula la entropía de esa matriz como si fuera una única fuente de r por s símbolos.
+
+def calcular_informacion_mutua(...)
+Esta función calcula la información mutua I(A,B), que mide cuánta información comparten A y B. Lo hace usando la definición completa, que compara la probabilidad conjunta real P(a,b) con la probabilidad que tendrían si fueran independientes (P(a)P(b)) para todos los pares (a,b).
+
+def es_canal_sin_ruido(...)
+Esta función verifica si un canal es "sin ruido" (lo que implica H(A|B)=0) comprobando si cada columna de la matriz del canal tiene un solo valor distinto de cero. Si devuelve True, significa que al recibir una salida b se sabe con certeza cuál fue la entrada a.
+
+def es_canal_determinante(...)
+Esta función verifica si un canal es "determinante" (lo que implica H(B|A)=0) comprobando si cada fila de la matriz del canal tiene un solo valor distinto de cero. Si devuelve True, significa que al enviar una entrada a se sabe con certeza cuál será la salida b.
+
+def se_pueden_combinar_columnas(...)
+Esta función verifica si dos columnas de una matriz de canal se pueden fusionar sin perder información (una "reducción suficiente"). Devuelve True solo si los vectores de ambas columnas son proporcionales, que es la condición matemática requerida.
+
+def generar_matriz_canal_determinante(...)
+Esta función realiza una "reducción elemental" de una matriz de canal. Suma todos los valores de la col2 en la col1, elimina col2 por completo, y devuelve la nueva matriz, que ahora tiene una columna menos.
+
+def generar_matriz_reducida(...)
+Esta función reduce un canal a su forma más simple. Entra en un bucle que busca repetidamente cualquier par de columnas que sean proporcionales (usando se_pueden_combinar_columnas) y las fusiona (usando generar_matriz_canal_determinante) hasta que no queda ningún par combinable.
+
+def es_canal_uniforme(...)
+Esta función verifica si un canal es uniforme. Lo hace comprobando si todas las filas de la matriz del canal son permutaciones entre sí.
+
+def calcular_capacidad(...)
+Esta función calcula la capacidad de un canal (C) usando fórmulas simples para casos especiales. Verifica si el canal es Determinante (calcula C = log_2(nro de salidas)), Sin Ruido (calcula C = log_2(nro de entradas)) o Uniforme (calcula C = log_2(nro de salidas) - H(fila)), y devuelve el valor correspondiente.
+
+def calcular_capacidad_binaria(...)
+Esta función estima la capacidad de un canal binario (2 entradas) por fuerza bruta. Itera probando todas las posibles probabilidades de entrada P(A) según un paso dado, calcula la informacion_mutua para cada una y devuelve el valor máximo que haya encontrado.
+
+def calcular_probabilidad_error(...) sin prob_a_priori
+Primero, determina la mejor decisión para cada columna j (salida) buscando la fila i con el max(P(b|a)). Luego, suma las probabilidades de todos los eventos en los que se cometería un error (prob_a_priori[i] * canal[i][j]), es decir, todas las celdas que no eran el máximo de su columna.
+
+def calcular_probabilidad_error(...) con prob_a_priori
+Esta función calcula la probabilidad total de error de un canal utilizando la regla de de máxima posibilidad condicional.Primero, determina la "regla de decisión" calculando la probabilidad conjunta (multiplicando prob_a_priori[i] * matriz_canal[i][j]) y, para cada columna (salida j), guarda la fila (entrada i) que maximiza esa probabilidad. Luego, suma las probabilidades conjuntas de todos los eventos que no fueron elegidos por esa regla, dando como resultado la probabilidad total de cometer un error.
+

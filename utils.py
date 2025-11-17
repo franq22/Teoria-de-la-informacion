@@ -320,18 +320,15 @@ def huffman(probabilidades):
 
     codigos = [''] * n
     
-    # Reiniciar la lista de items para asignar códigos
     items = [[probabilidades[i], [i]] for i in range(n)]
     heapq.heapify(items)
     
-    # Diccionario para almacenar códigos parciales
     codigo_dict = {i: '' for i in range(n)}
     
     while len(items) > 1:
         item1 = heapq.heappop(items)
         item2 = heapq.heappop(items)
         
-        # Asignar '1' al primero (menor) y '0' al segundo
         for idx in item1[1]:
             codigo_dict[idx] = '0' + codigo_dict[idx]
         for idx in item2[1]:
@@ -347,21 +344,16 @@ def huffman(probabilidades):
 def shannon_fano(probabilidades):
     n = len(probabilidades)
     
-    # Crear lista de items: [probabilidad, índice]
     items = [[probabilidades[i], i] for i in range(n)]
     
-    # Ordenar por probabilidad descendente
     items.sort(reverse=True, key=lambda x: x[0])
     
-    # Diccionario para almacenar códigos
     codigo_dict = {i: '' for i in range(n)}
     
-    # Función recursiva para dividir y asignar códigos
     def dividir(items_grupo):
         if len(items_grupo) <= 1:
             return
         
-        # Calcular el punto de división que hace las sumas más equilibradas
         total = sum(item[0] for item in items_grupo)
         suma_acumulada = 0
         mejor_pos = 1
@@ -376,25 +368,20 @@ def shannon_fano(probabilidades):
                 mejor_diferencia = diferencia
                 mejor_pos = pos
         
-        # Dividir en dos grupos
         grupo_superior = items_grupo[:mejor_pos]
         grupo_inferior = items_grupo[mejor_pos:]
         
-        # Asignar '1' al grupo superior y '0' al inferior
         for item in grupo_superior:
             codigo_dict[item[1]] = codigo_dict[item[1]] + '1'
         
         for item in grupo_inferior:
             codigo_dict[item[1]] = codigo_dict[item[1]] + '0'
         
-        # Recursión en cada grupo
         dividir(grupo_superior)
         dividir(grupo_inferior)
     
-    # Iniciar la división
     dividir(items)
     
-    # Convertir diccionario a lista en orden original
     return [codigo_dict[i] for i in range(n)]
 
 def rendimiento_redundancia(probabilidades, codigos):  
@@ -408,28 +395,22 @@ def rendimiento_redundancia(probabilidades, codigos):
     return rendimiento, redundancia
 
 def codificar(mensaje, alfabeto, codificacion) -> bytearray:
-    # Crear un diccionario de codificación
     cod_dict = {simbolo: codigo for simbolo, codigo in zip(alfabeto, codificacion)}
     
-    # Codificar el mensaje
     mensaje_codificado = ''.join(cod_dict[simbolo] for simbolo in mensaje)
     
-    # Convertir la cadena de bits a bytearray
     byte_array = bytearray()
     for i in range(0, len(mensaje_codificado), 8):
         byte = mensaje_codificado[i:i+8]
-        byte_array.append(int(byte.ljust(8, '0'), 2))  # Rellenar con ceros si es necesario
+        byte_array.append(int(byte.ljust(8, '0'), 2))  
     
     return byte_array
 
 def decodificar(byte_array: bytearray, alfabeto, codificacion) -> str:
-    # Crear un diccionario de decodificación
     decod_dict = {codigo: simbolo for simbolo, codigo in zip(alfabeto, codificacion)}
     
-    # Convertir bytearray a cadena de bits
     mensaje_codificado = ''.join(f'{byte:08b}' for byte in byte_array)
     
-    # Decodificar el mensaje
     mensaje_decodificado = ''
     codigo_actual = ''
     for bit in mensaje_codificado:
@@ -661,7 +642,7 @@ def calcular_matriz_simultanea(prob_a_priori: list[float],
 def calcular_prob_salida(prob_a_priori: list[float], 
                           matriz_canal: list[list[float]]) -> list[float]:
     """
-    Calcula la lista de probabilidades de los símbolos de salida P(bj).
+    Calcula la lista de probabilidades de los símbolos de P(bj).
     P(bj) = Σ [P(ai, bj)] para todo i
     """
 
@@ -833,51 +814,34 @@ def es_canal_determinante(matriz_canal: list[list[float]]) -> bool:
     return True
 
 def se_pueden_combinar_columnas(matriz_canal: list[list[float]], col1: int, col2: int) -> bool:
-    """
-    Verifica si dos columnas son combinables para una reducción suficiente.
-    
-    Esto es cierto si y solo si los vectores de las columnas son proporcionales,
-    es decir, P(b_col1 | a_i) = C * P(b_col2 | a_i) para todas las entradas 'i'.
-    """
     if not matriz_canal:
         return False
         
     num_filas = len(matriz_canal)
     constante_proporcionalidad = None
 
-    # 1. Encontrar la constante de proporcionalidad (C)
     for i in range(num_filas):
         prob1 = matriz_canal[i][col1]
         prob2 = matriz_canal[i][col2]
 
-        # Usamos math.isclose para manejar la precisión de los floats
         if not math.isclose(prob2, 0.0):
-            # Encontramos una fila donde col2 no es cero,
-            # esto define la constante
             constante_proporcionalidad = prob1 / prob2
             break
         elif not math.isclose(prob1, 0.0):
-            # Si col2 es 0 pero col1 no es 0, la única forma de que
-            # sean proporcionales es que col2 sea *siempre* 0.
-            # Verificaremos esto en el paso 2.
-            constante_proporcionalidad = float('inf') # Usamos inf como bandera
+            constante_proporcionalidad = float('inf') 
             break
     
-    # Si ambas columnas son completamente cero, son proporcionales (C=cualquier cosa)
     if constante_proporcionalidad is None:
         return True
 
-    # 2. Verificar que todas las filas respeten la constante
     for i in range(num_filas):
         prob1 = matriz_canal[i][col1]
         prob2 = matriz_canal[i][col2]
         
         if constante_proporcionalidad == float('inf'):
-            # Si p1 > 0, p2 debe ser 0.
             if not math.isclose(prob2, 0.0):
-                return False # p2 no fue 0
+                return False 
         else:
-            # Comprobar P(b1|ai) = C * P(b2|ai)
             if not math.isclose(prob1, constante_proporcionalidad * prob2):
                 return False
                 
@@ -925,3 +889,135 @@ def generar_matriz_reducida(matriz_original: list[list[float]]) -> list[list[flo
                 break
                 
     return matriz_reducida
+
+def es_canal_uniforme(matriz_canal: list[list[float]]) -> bool:
+    """
+    Verifica si un canal es uniforme (simétrico).
+    
+    Un canal es simétrico si todas sus filas son permutaciones
+    entre sí
+    """
+    if not matriz_canal:
+        return False
+      
+    num_filas = len(matriz_canal)
+    firma_fila = sorted([round(p, 8) for p in matriz_canal[0]])
+    
+    for i in range(1, num_filas):
+        fila_actual_ordenada = sorted([round(p, 8) for p in matriz_canal[i]])
+        if fila_actual_ordenada != firma_fila:
+            return False
+            
+    return True
+
+def es_canal_determinante(matriz_canal: list[list[float]]) -> bool:
+    """
+    Verifica si el canal es Determinante (Sin Pérdida), H(B|A) = 0.
+    Esto es cierto si cada FILA tiene exactamente un valor no nulo (usualmente 1.0).
+    """
+    if not matriz_canal:
+        return False
+    for fila in matriz_canal:
+        contador_no_cero = 0
+        for prob in fila:
+            if not math.isclose(prob, 0.0):
+                contador_no_cero += 1
+        if contador_no_cero != 1:
+            return False
+    return True
+
+def es_canal_sin_ruido(matriz_canal: list[list[float]]) -> bool:
+    """
+    Verifica si el canal es Sin Ruido (Sin Equivocación), H(A|B) = 0.
+    Esto es cierto si cada COLUMNA tiene exactamente un valor no nulo (usualmente 1.0).
+    """
+    if not matriz_canal:
+        return False
+    num_filas = len(matriz_canal)
+    num_columnas = len(matriz_canal[0])
+
+    for j in range(num_columnas):
+        contador_no_cero = 0
+        for i in range(num_filas):
+            if not math.isclose(matriz_canal[i][j], 0.0):
+                contador_no_cero += 1
+        if contador_no_cero != 1:
+            return False
+    return True
+
+def calcular_capacidad(matriz_canal: list[list[float]]) -> float:
+
+    num_entradas_r = len(matriz_canal)
+    num_salidas_s = len(matriz_canal[0])
+
+    if es_canal_determinante(matriz_canal):
+        print(f"  (Detectado: Canal Determinante)")
+        return math.log2(num_salidas_s)
+
+    if es_canal_sin_ruido(matriz_canal):
+        print(f"  (Detectado: Canal Sin Ruido)")
+        return math.log2(num_entradas_r)
+        
+    if es_canal_uniforme(matriz_canal):
+        print(f"  (Detectado: Canal Uniforme)")
+        return math.log2(num_salidas_s) - entropia(matriz_canal[0])
+
+    raise ValueError("El canal no pertenece a un caso especial (Determinante, Sin Ruido o Uniforme).")
+
+def calcular_capacidad_binaria(matriz_canal: list[list[float]], paso: float) -> tuple[float, list[float]]: 
+        
+    maxima_informacion = -1.0  
+    probabilidad_optima = [0.0, 1.0]
+    
+    p = 0.0
+    
+    while p <= 1.000001: # Tolerancia para incluir el 1.0 exacto
+        
+        prob_a_priori = [p, 1.0 - p]
+        
+        info_actual = calcular_informacion_mutua( prob_a_priori, matriz_canal )
+        
+        if info_actual > maxima_informacion:
+            maxima_informacion = info_actual
+            probabilidad_optima = prob_a_priori
+            
+        p += paso
+        
+    return maxima_informacion, probabilidad_optima
+
+def calcular_probabilidad_error(prob_a_priori: list[float], 
+                                matriz_canal: list[list[float]]) -> float:
+    regla_decision = []
+    for j in range(len(matriz_canal[0])):
+        max_prob = -1.0
+        mejor_i = 0
+        for i in range(len(matriz_canal)):
+            prob_actual = prob_a_priori[i] * matriz_canal[i][j]
+            if prob_actual > max_prob:
+                max_prob = prob_actual
+                mejor_i = i
+        regla_decision.append(mejor_i)
+
+    prob_error = 0.0
+    for i in range(len(matriz_canal)):
+        for j in range(len(matriz_canal[0])):
+            if regla_decision[j] != i:
+                prob_error += prob_a_priori[i] * matriz_canal[i][j]
+    return prob_error
+
+def getAlfaProbabilidades_binario(texto: str):
+    alfabeto = ['0', '1']
+    longitud = len(texto)
+    
+    if longitud == 0:
+        return alfabeto, [0.0, 0.0]
+        
+    count_0 = texto.count('0')
+    count_1 = texto.count('1')
+    
+    prob_0 = count_0 / longitud
+    prob_1 = count_1 / longitud
+    
+    probabilidades = [prob_0, prob_1]
+    
+    return alfabeto, probabilidades

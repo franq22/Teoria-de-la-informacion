@@ -59,7 +59,7 @@ for i, a in enumerate(alfabeto_A):
         fila_posteriori[b] = probs_a_posteriori[i][j]
     print(f"P(A={a}|B):", fila_posteriori)
 
-simulteanos = utils.calcular_prob_simultaneas(probs, matriz)
+simulteanos = utils.calcular_matriz_simultanea(probs, matriz)
 print("Probabilidades simultáneas P(A,B):")
 for i, a in enumerate(alfabeto_A):
     fila_simultaneos = {}
