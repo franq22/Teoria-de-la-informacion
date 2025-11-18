@@ -34,7 +34,7 @@ for nombre_canal, datos in canales.items():
     entropia_entrada = utils.entropia(probs_entrada)
     probs_salida = utils.calcular_prob_salida(probs_entrada, matriz_canal)
     entropia_salida = utils.entropia(probs_salida)
-    equivocacion = utils.calcular_equivocacion(probs_entrada, matriz_canal)
+    equivocacion = utils.calcular_equivocacion_ruido(probs_entrada, matriz_canal)
     perdida = utils.calcular_perdida(probs_entrada, matriz_canal)
     entropia_afin = utils.calcular_entropia_afin(probs_entrada, matriz_canal)
     informacion_mutua = utils.calcular_informacion_mutua(probs_entrada, matriz_canal)

@@ -89,7 +89,7 @@ for i, canal in enumerate(canales):
     print(f"  Es canal sin ruido: {sin_ruido}")
     print(f"  Es canal determinante: {determinante}")
     
-    ruido = utils.calcular_equivocacion(probabilidades_entrada, canal)
+    ruido = utils.calcular_equivocacion_ruido(probabilidades_entrada, canal)
     perdida = utils.calcular_perdida(probabilidades_entrada, canal)
     informacion = utils.calcular_informacion_mutua(probabilidades_entrada, canal)
     
