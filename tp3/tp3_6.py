@@ -1,58 +1,28 @@
-def es_instantaneo(codigo: set) -> bool:
+import utils
+
+def clasificar_codigo(codigo: list) -> str:
     """
-    Un código es instantáneo si ningún símbolo es prefijo de otro.
+    Clasifica un código como instantáneo, sin prefijo, o no sin prefijo.
     """
-    codigo_lista = list(codigo)
-    for i in range(len(codigo_lista)):
-        for j in range(len(codigo_lista)):
-            if i != j and codigo_lista[j].startswith(codigo_lista[i]):
-                return False
-    return True
-# ...existing code...
+    if utils.es_singular(codigo):
+        return "bloque"
+    elif utils.es_instantaneo(set(codigo)):
+        return "instantáneo"
+    elif utils.es_univocamente_decodificable(set(codigo)):
+        return "univocamente decodificable"
+    else:   
+        return "no singular"
+    
+codigo1  = ["011", "000", "010", "101", "001", "100"]
+codigo2  = ["110", "100", "101", "001", "110", "010"]
+codigo3  = ["10", "1100", "0101", "1011", "0", "110"]
+codigo4  = ["1101", "10", "1111", "1100", "1110", "0"]
+codigo5  = ["011", "0111", "01", "0", "011111", "01111"]
+codigo6  = ["1110", "0", "110", "1101", "1011", "10"]
 
-def es_univocamente_decodificable(codigo: set) -> bool:
-    """
-    Verifica si un código es unívocamente decodificable.
-
-    Parámetros:
-        - codigo (set): Lista de cadenas que representan el código.
-    Retorna:
-        - bool: True si el código es unívocamente decodificable, False en caso contrario.
-    Precondiciones:
-        - codigo no está vacío.
-        - codigo es distinto de None
-        - el codigo es no singular
-    """
-    S = [codigo, set()]
-    i = 0
-    seguir = True
-    while seguir:
-        for x in S[0]:
-            for y in S[i]:
-                if x.startswith(y) and x != y:
-                    S[i+1].add(x[len(y):])
-                else:
-                    if y.startswith(x) and x != y:
-                        S[i+1].add(y[len(x):])
-        if codigo.intersection(S[i+1]) != set(): # Si la intersección no es vacía, no es unívocamente decodificable
-            respuesta = False
-            seguir = False
-        else:
-            if S[i+1] == set() or S[i+1] in S[0:i+1]:
-                respuesta = True
-                seguir = False
-            else:
-                S.append(set())
-                i += 1
-    return respuesta
-
-CODIGO_1 = {"010", "101", "000", "111"}
-CODIGO_2 = {"110", "001", "11", "00"}
-
-print("Código 1 es instantáneo:", es_instantaneo(CODIGO_1))
-print("Código 1 es unívocamente decodificable:", es_univocamente_decodificable(CODIGO_1))
-print("Código 2 es instantáneo:", es_instantaneo(CODIGO_2))
-print("Código 2 es unívocamente decodificable:", es_univocamente_decodificable(CODIGO_2))
-
-
-
+print("Código 1:",clasificar_codigo(codigo1))
+print("Código 2:",clasificar_codigo(codigo2))
+print("Código 3:",clasificar_codigo(codigo3))
+print("Código 4:",clasificar_codigo(codigo4))
+print("Código 5:",clasificar_codigo(codigo5))
+print("Código 6:",clasificar_codigo(codigo6))
